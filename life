@@ -1,0 +1,111 @@
+#!/bin/bash
+id=HAAQER
+pause=1
+to="$( cat ~/.life/target )" #5472099
+while getopts ":i:P:t:"  opt; do
+        case $opt in
+                i)
+                        id=$OPTARG;;
+                P)
+                        pause=$OPTARG;;
+                t)
+                        to=$OPTARG;;
+                h)
+			echo "Usage:life.sh (-i id) command [arguments]"
+		       exit 0;;
+                \?)
+                        echo "Invalid option: -$OPTARG">&2
+                        exit 1;;
+                :)
+                        echo "Option -$OPTARG requires an argument.">&2
+                        exit 1;;
+        esac
+done
+
+out=ERROR
+input=`echo $@|cut -d " " -f"$OPTIND"-`
+command=`echo $input|cut -d " " -f1`
+message=`echo $input|cut -d " " -f2-`
+encoded_message=$(echo -ne $message|xxd -p |tr -d '\n'|sed 's/\(..\)/%\1/g')
+case "$command" in
+	login)
+		out=`curl -s 'http://ec.androiddown.com/chat/app.php?cmd=login&id='$id'&plat=iphone'`;;
+	keep)
+		out=`curl -s 'http://ec.androiddown.com/chat/app.php?cmd=keep&id='$id'&plat=iphone'`;;
+	disconnect)
+		out=`curl -s 'http://ec.androiddown.com/chat/app.php?cmd=disconnect&id='"$id"'&to='"$to"'&plat=iphone'`;;
+	chat)
+		out=`curl -s 'http://ec.androiddown.com/chat/app.php?cmd=chat&id='$id'&to='"$to"'&content='"$encoded_message"'&plat=iphone'`
+		out=`echo $out $id: to $to $message`;;
+
+
+
+	parse)
+		message=$(echo $message|rev|tail -c+4|rev)
+		message=$(echo $message,\")
+		echo $message | grep -oP "(?<=\"type\":\").*?(?=\",\")"
+		echo $message | grep -oP "(?<=\"to\":\").*?(?=\",\")"
+		echo $message | grep -oP "(?<=\"from\":\").*?(?=\",\")"
+		echo $message | grep -oP "(?<=\"content\":\").*?(?=\",\")"
+		echo $message | grep -oP "(?<=\"time\":\").*?(?=\",\")"
+		exit 0;;
+	
+	shell)
+		while read line; do
+			life chat $line
+		done
+		exit 0;;
+	
+	monitor)
+		while true; do
+			out=`life -i $to keep`
+			out=$(echo $out|tail -c+58)
+			#echo $out
+			if [ "$out" != '' ];then
+				echo $out
+				#out=$(echo $out|awk 'BEGIN {FS="},{"} {for (i=1;i<+NF;i++)print$i}')
+				echo "$out"
+				while read -r line; do
+					line=$(life parse "$line")
+
+					ltype=$(echo "$line"|head -n1 |tail -1)
+					lto=$(echo "$line"|head -n2 |tail -1)
+					lfrom=$(echo "$line"|head -n3 |tail -1)
+					lcontent=$(echo "$line"|head -n4 |tail -1)
+					ltime=$(echo "$line"|head -n5 |tail -1)
+
+					life -t $to chat $lcontent|
+					if [ "$lfrom" != "$id" ];then
+						echo "$ltype"="$lfrom":"$lcontent"
+					fi
+				done <<< "$out"
+			fi
+			sleep $pause
+		done;;
+			
+	log)
+		cat ~/.life/log
+		exit 0;;
+
+	attend)
+		while true; do
+			out='{"cmd":"keep","res":"1","desc":"keep succeed"}'
+			while [ "$out" == '{"cmd":"keep","res":"1","desc":"keep succeed"}' ]; do
+				out=`life -i $id keep`
+				sleep $pause
+			done
+			line=$(life parse "$out")
+			ltype=$(echo "$line"|head -n1 |tail -1)
+			echo $ltype
+			if [ "$ltype" == connected ]; then
+				echo "$line"|head -n3 |tail -1 > ~/.life/target
+			fi
+
+			echo $out >> ~/.life.log
+			echo $out
+		done;;
+esac
+if [ "$out" != '{"cmd":"keep","res":"1","desc":"keep succeed"}' ]; then
+	echo $out >> ~/.life/log
+fi
+echo $out
