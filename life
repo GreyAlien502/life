@@ -56,15 +56,98 @@ case "$command" in
 		done
 		exit 0;;
 	
+	attach)
+		life -i "$to" login
+		life -i "$id" login && life -i "$to" login
+		out="$id connect? to $to";;
+		
+	send)
+		life -i"$id" -t"$to" chat 'JAD:'"$message"
+
+		bytenum=0
+		echo "$message"
+		length_plus_1341=$(( $(wc -c "$message"| sed 's/^ *//' |cut -d' ' -f1 -) + 1341 ))
+		echo $length_plus_1341
+		while [ $bytenum -lt $length_plus_1341 ];do
+			tosend=$(  xxd -s$bytenum -l1341 -p "$message" |tr -d '\n' )
+			life -i"$id" -t"$to" chat $tosend
+			bytenum=$((bytenum + 1341))
+			sleep "$pause"
+		done
+
+		#life -i"$id" -t"$to" chat ":JAD"
+
+		out="$message sent";;
+
+	receive)
+		imput=
+		i=0
+		while [ "$line" != 'chat' ];do
+			imput="$(life -i"$id" keep)"
+			imput=$(echo $imput|tail -c+58)
+			if [ "$imput" != "" ];then
+				nuvoimput=$(echo $imput|awk 'BEGIN {FS="},{"} {for (i=1;i<+NF;i++)print$i}')
+				if [ "$nuvoimput" != "" ];then
+					imput="$nuvoimput"
+				fi
+					echo "$imput" | wc -l
+				while read -r line;do
+					line="$(echo $line|rev|tail -c+4|rev)"
+					line="$(echo $line,\")"
+					line="$(echo $line | grep -oP "(?<=\"content\":\").*?(?=\",\")" )"
+					if [ "${line:0:4}" = JAD: ];then
+						filename="${line:4}"
+						echo NAMED
+						echo "$filename"
+						#rm "$filename".lifetmp
+						touch "$filename".lifetmp
+					elif [ "$line" = chat ];then
+						break
+					else
+						echo "$line" >> "$filename".lifetmp
+					fi
+				done <<< "$imput"
+			fi
+		done
+		#rm "$filename"
+		cat "$filename".lifetmp | xxd -r -p - "$filename"
+		rm "$filename".lifetmp
+		out="$filename received";;
+
+	connect)
+		life -i "$id" login > /dev/null
+		responseID=""
+		while [ "$responseID" == "" ]; do
+			out=$(life -i $id keep)
+			out=$(echo $out|rev|tail -c+4|rev)
+			out=$(echo $out,\")
+			type=$(echo $out | grep -oP "(?<=\"type\":\").*?(?=\",\")")
+			if [ "$type" = "connected" ]; then
+				responseID=$(echo $out | grep -oP "(?<=\"from\":\").*?(?=\",\")")
+			fi
+		done
+		out=$responseID;;
+	
+	scan)
+		i=0
+		responseID=""
+		while :; do 
+			responseID=$(life -i "$id""$i" connect)&&
+			i=$((i + 1))
+		done
+		out=;;
+		
 	monitor)
 		while true; do
 			out=`life -i $to keep`
 			out=$(echo $out|tail -c+58)
 			#echo $out
 			if [ "$out" != '' ];then
-				echo $out
-				#out=$(echo $out|awk 'BEGIN {FS="},{"} {for (i=1;i<+NF;i++)print$i}')
-				echo "$out"
+				nuvoout=$(echo $out|awk 'BEGIN {FS="},{"} {for (i=1;i<+NF;i++)print$i}')
+				if [ "$nuvoout" != '' ];then
+					out="$nuvoout"
+				fi
+				#echo "$out"
 				while read -r line; do
 					line=$(life parse "$line")
 
@@ -74,7 +157,12 @@ case "$command" in
 					lcontent=$(echo "$line"|head -n4 |tail -1)
 					ltime=$(echo "$line"|head -n5 |tail -1)
 
-					life -t $to chat $lcontent|
+					if [ "$type" == 'connected' ];then
+						life -i "$to" login
+					elif [ "$type" == 'msg' ];then
+						life -t $to chat $lcontent>/dev/null
+					fi
+
 					if [ "$lfrom" != "$id" ];then
 						echo "$ltype"="$lfrom":"$lcontent"
 					fi
