@@ -5,7 +5,7 @@ to="$( cat ~/.life/target )" #5472099
 while getopts ":i:P:t:"  opt; do
         case $opt in
                 i)
-                        id=$OPTARG;;
+                        id="$OPTARG";;
                 P)
                         pause=$OPTARG;;
                 t)
@@ -22,11 +22,11 @@ while getopts ":i:P:t:"  opt; do
         esac
 done
 
-out=ERROR
 input=`echo $@|cut -d " " -f"$OPTIND"-`
 command=`echo $input|cut -d " " -f1`
 message=`echo $input|cut -d " " -f2-`
 encoded_message=$(echo -ne $message|xxd -p |tr -d '\n'|sed 's/\(..\)/%\1/g')
+out="ERROR: Command '$command' not found."
 case "$command" in
 	login)
 		out=`curl -s 'http://ec.androiddown.com/chat/app.php?cmd=login&id='$id'&plat=iphone'`;;
@@ -36,6 +36,9 @@ case "$command" in
 		out=`curl -s 'http://ec.androiddown.com/chat/app.php?cmd=disconnect&id='"$id"'&to='"$to"'&plat=iphone'`;;
 	chat)
 		out=`curl -s 'http://ec.androiddown.com/chat/app.php?cmd=chat&id='$id'&to='"$to"'&content='"$encoded_message"'&plat=iphone'`
+		out=`echo $out $id: to $to $message`;;
+	Chat)
+		out=`curl -s 'http://ec.androiddown.com/chat/app.php?cmd=chat&id=&to='"$to"'&content='"$encoded_message"'&plat=iphone'`
 		out=`echo $out $id: to $to $message`;;
 
 
