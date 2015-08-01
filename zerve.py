@@ -3,10 +3,10 @@ import os
 import commands
 import basiccommands as base
 
-def checkCreds(creds):
+def checkCreds(username,password):
 	userfile = open(os.getenv('HOME')+"/.zerved/accounts",'r')
 	credlist = userfile.read().splitlines()
-	if(creds in credlist):
+	if(username+'|'+password in credlist):
 		return True
 	else:
 		return False
@@ -22,7 +22,6 @@ while True:
 	response = base.keep(hat)
 	if 'events' in response:
 		for event in response['events']:
-			print('e')
 			print(event)
 			if event['type'] == 'connected':
 				1
@@ -30,14 +29,19 @@ while True:
 				commands.connect(cat,hat)
 			elif event['type'] == 'msg':
 				if event['from'] == None:
-					name = event['content'].splitlines()[0]
-					credentials = event['content'].splitlines()[1]
-					command = '\n'.join(event['content'].splitlines()[2:])
-					if (checkCreds(credentials)):
+					content = json.loads(event['content'])
+
+					sendback = content['sendback']
+					username = content['username']
+					password = content['password']
+					command  = content['command' ]
+					data     = content['data'    ]
+
+					if (checkCreds(username,password)):
 						if command == 'login':
-							output = '<h1>Welcome. Enjoy your premium membership.</h1>'
+							output = '<h1>Welcome. Enjoy your premium <a href="content">membership.</a></h1>'
 					else:
-						output = "You don't belong here."
+						output = 'You are not logged in. You can log in <a href="login.html">here</a>. If you do not have an account or can not remember the password feel free to use the guest account.'
 					commands.connect(name,name+'_cat')
 					base.chat(None,name,output)
 			elif event['type'] == 'question':
