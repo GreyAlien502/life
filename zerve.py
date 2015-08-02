@@ -41,7 +41,7 @@ while True:
 			print(event)
 			if event['type'] == 'connected':
 				1
-			elif event['type'] == 'disconnected':
+			elif event['type'] == 'disconnect':
 				commands.connect(cat,hat)
 			elif event['type'] == 'msg':
 				if event['from'] == None:
@@ -60,8 +60,12 @@ while True:
 							output = '<a href="../index.html">Home</a><br>Hello '+username+'<br><a onclick="posts()">Posts</a> <a onclick="files()">Personal Files</a> <a onclick="logout()">Logout</a> <a onclick="messages"> Messages</a> <a onclick="seeBash()">Bash</a> <a onlick="preferences()">Preferences</a>'
 					else:
 						output = 'You have not entered a correct password. You can log in <a href="login.html">here</a>. If you do not have an account or can not remember the password feel free to use the guest account.'
+					print('connecting')
 					commands.connect(sendback,sendback+'_cat')
+					print('connected')
 					send(sendback,json.dumps(output))
+				else:
+					commands.connect(cat,hat)
 			elif event['type'] == 'question':
 				1
 	#time.sleep(.05)
