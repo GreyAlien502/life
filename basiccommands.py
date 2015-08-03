@@ -1,8 +1,8 @@
 import urllib.request
 import json
 
-def _get(options,preencoded=False):
-	if preencoded: return json.loads(urllib.request.urlopen('http://ec.androiddown.com/chat/app.php?'+options                        ).read().decode('UTF-8'))
+def _get(options,timeout=None):
+	if timeout != None: return json.loads(urllib.request.urlopen('http://ec.androiddown.com/chat/app.php?'+options,                              None,timeout).read().decode('UTF-8'))
 	else:          return json.loads(urllib.request.urlopen('http://ec.androiddown.com/chat/app.php?'+urllib.parse.urlencode(options)).read().decode('UTF-8'))
 
 def login(ID=None):
@@ -22,7 +22,7 @@ def disconnect(ID='',to=''):
 	if to != None:
 		options.update({'to':to})
 	return _get(options)
-def chat(ID=None,to=None,message=None):
+def chat(ID=None,to=None,message=None,timeout=None):
 	options = {'cmd':'chat'}
 	if ID != None:
 		options.update({'id':ID})
@@ -30,5 +30,5 @@ def chat(ID=None,to=None,message=None):
 		options.update({'to':to})
 	if message != None:
 		options.update({'content':message})
-	return _get(options)
+	return _get(options,timeout)
 	

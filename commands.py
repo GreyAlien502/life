@@ -10,13 +10,13 @@ def getResponse(ID):
 
 def connect(ID1,ID2):
 	origin = ''
+	base.login(ID2)
 	while origin != ID2:
 		base.disconnect(ID2)
 		base.login(ID1)
 		base.login(ID2)
 		eventlecian=getResponse(ID1)['events']
 		for event in eventlecian:
-			print(event)
 			if event['type'] == 'connected':
 				origin = event['from']
 
