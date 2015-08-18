@@ -62,9 +62,13 @@ while True:
 							output = zervcom.home(content)
 						if command == 'posts':
 							output = zervcom.posts(content)
+						if command == 'post':
+							output = zervcom.post(content)
 					else:
 						output = 'You have not entered a correct password. You can log in <a href="login.html">here</a>. If you do not have an account or can not remember the password feel free to use the guest account.'
 					send(sendback,json.dumps(output))
+				else:
+					commands.connect(cat,hat)
 			elif event['type'] == 'question':
 				1
 	#time.sleep(.05)
