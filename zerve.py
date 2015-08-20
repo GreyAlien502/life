@@ -11,13 +11,12 @@ import zervecommands as zervcom
 
 def send(destination,content):
 	def tryQuickChat(destination,message):
-		print('mess'+message)
 		base.keep(destination+'_cat')
 		base.chat(destination+"_cat",destination,message)
-		base.chat(destination,destination+'_cat','Look at me NOW!')
-		response = commands.getResponse(destination+'_cat',timeout=2)
-		print(response)
-		if(response['events'][-1]['type']=='disconnect'):
+		response = base.keep(destination+'_cat')
+		if('events' in response):
+			#if (response['events'][-1]['type'] == 'disconnect') &\
+			#   (response['events'][-1]['from'] == destination):
 			print('imperfiect')
 			commands.connect(destination+'_cat',destination)
 			base.chat(destination+'_cat',destination,message)
@@ -39,23 +38,16 @@ cat = "zerving_cat"
 hat = "zerving_hat"
 commands.connect(cat,hat)
 while True:
-	base.chat(cat,hat,"Look at me NOW!")
+	base.chat(hat,cat,"Look at me NOW!")
 	response = base.keep(cat)
 	if 'events' in response:
 		print(response)
-		lastresponse = response['events'][-1]
-		if (lastresponse['from'] == hat) &\
-		   (lastresponse['type'] == 'disconnect'):
-			commands.connect(cat,hat)
-	response = base.keep(hat)
-	if 'events' in response:
 		for event in response['events']:
 			print(event)
 			if event['type'] == 'connected':
 				1
 			elif event['type'] == 'disconnect':
-				if event['from'] == cat:
-					commands.connect(cat,hat)
+				commands.connect(cat,hat)
 			elif event['type'] == 'msg':
 				if event['from'] == None:
 					content = json.loads(event['content'])
