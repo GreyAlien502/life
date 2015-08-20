@@ -16,19 +16,17 @@ def getResponse(ID,timeout=False):
 	return response
 
 def connect(ID1,ID2):
-	origin = ''
-	base.login(ID2)
-	while origin != ID2:
-		base.disconnect(origin)
+	while True:
 		base.login(ID1)
 		base.login(ID2)
-		origin = ''
-		while origin == '':
-			eventlecian=getResponse(ID1)['events']
-			for event in eventlecian:
-				print(event)
-				if event['type'] == 'connected':
-					origin = event['from']
+		connection1 = base.keep(ID1)['events'][-1]['from']
+		if connection1 == ID2:
+			return True
+		connection2 = base.keep(ID2)['events'][-1]['from']
+		base.disconnect(connection1)
+		base.disconnect(connection2)
+
+
 
 def attend(ID,pause=1):
 	while True:
