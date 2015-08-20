@@ -2,8 +2,10 @@ import urllib.request
 import json
 
 def _get(options,timeout=None):
-	if timeout != None: return json.loads(urllib.request.urlopen('http://ec.androiddown.com/chat/app.php?'+options,                              None,timeout).read().decode('UTF-8'))
-	else:          return json.loads(urllib.request.urlopen('http://ec.androiddown.com/chat/app.php?'+urllib.parse.urlencode(options)).read().decode('UTF-8'))
+	if timeout != None: output = json.loads(urllib.request.urlopen('http://ec.androiddown.com/chat/app.php?'+options,                              None,timeout).read().decode('UTF-8'))
+	else:          output = json.loads(urllib.request.urlopen('http://ec.androiddown.com/chat/app.php?'+urllib.parse.urlencode(options)).read().decode('UTF-8'))
+#	print(output)
+	return output
 
 def login(ID=None):
 	options = {'cmd':'login'}

@@ -2,9 +2,16 @@ import subprocess as sub
 import time
 import basiccommands as base
 
-def getResponse(ID):
+def getResponse(ID,timeout=False):
+	if timeout:
+		starttime = time.time()
+		def check(response):
+			return ('events' not in response) & (timeout > starttime + timeout)
+	else:
+		def check(response):
+			return 'events' not in response
 	response = {}
-	while 'events' not in response:
+	while check(response):
 		response = base.keep(ID)
 	return response
 
@@ -12,13 +19,16 @@ def connect(ID1,ID2):
 	origin = ''
 	base.login(ID2)
 	while origin != ID2:
-		base.disconnect(ID2)
+		base.disconnect(origin)
 		base.login(ID1)
 		base.login(ID2)
-		eventlecian=getResponse(ID1)['events']
-		for event in eventlecian:
-			if event['type'] == 'connected':
-				origin = event['from']
+		origin = ''
+		while origin == '':
+			eventlecian=getResponse(ID1)['events']
+			for event in eventlecian:
+				print(event)
+				if event['type'] == 'connected':
+					origin = event['from']
 
 def attend(ID,pause=1):
 	while True:

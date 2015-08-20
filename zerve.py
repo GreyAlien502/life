@@ -11,11 +11,15 @@ import zervecommands as zervcom
 
 def send(destination,content):
 	def tryQuickChat(destination,message):
+		print('mess'+message)
+		base.keep(destination+'_cat')
 		base.chat(destination+"_cat",destination,message)
 		base.chat(destination,destination+'_cat','Look at me NOW!')
-		if(commands.getResponse(destination+'_cat')['events'][-1]['type']=='disconnect'):
+		response = commands.getResponse(destination+'_cat',timeout=2)
+		print(response)
+		if(response['events'][-1]['type']=='disconnect'):
 			print('imperfiect')
-			commands.connect(destination+'_cat',sendback)
+			commands.connect(destination+'_cat',destination)
 			base.chat(destination+'_cat',destination,message)
 	block_size = 2300
 	checkconnection=False
@@ -35,8 +39,14 @@ cat = "zerving_cat"
 hat = "zerving_hat"
 commands.connect(cat,hat)
 while True:
-	base.chat(hat,cat,"Look at me NOW!")
-	base.keep(cat)
+	base.chat(cat,hat,"Look at me NOW!")
+	response = base.keep(cat)
+	if 'events' in response:
+		print(response)
+		lastresponse = response['events'][-1]
+		if (lastresponse['from'] == hat) &\
+		   (lastresponse['type'] == 'disconnect'):
+			commands.connect(cat,hat)
 	response = base.keep(hat)
 	if 'events' in response:
 		for event in response['events']:
@@ -44,7 +54,8 @@ while True:
 			if event['type'] == 'connected':
 				1
 			elif event['type'] == 'disconnect':
-				commands.connect(cat,hat)
+				if event['from'] == cat:
+					commands.connect(cat,hat)
 			elif event['type'] == 'msg':
 				if event['from'] == None:
 					content = json.loads(event['content'])
@@ -53,7 +64,6 @@ while True:
 					username = content['username']
 					password = content['password']
 					command  = content['command' ]
-					data     = content['data'    ]
 
 					if (zervcom.checkCreds(username,password)):
 						if command == 'login':
@@ -64,11 +74,15 @@ while True:
 							output = zervcom.posts(content)
 						if command == 'post':
 							output = zervcom.post(content)
+						if command == 'comments':
+							output = zervcom.comments(content)
+						if command == 'comment':
+							output = zervcom.comment(content)
 					else:
 						output = 'You have not entered a correct password. You can log in <a href="login.html">here</a>. If you do not have an account or can not remember the password feel free to use the guest account.'
 					send(sendback,json.dumps(output))
-				else:
-					commands.connect(cat,hat)
+				#jelse:
+				#jq:	commands.connect(cat,hat)
 			elif event['type'] == 'question':
 				1
 	#time.sleep(.05)
