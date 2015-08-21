@@ -16,16 +16,32 @@ def getResponse(ID,timeout=False):
 	return response
 
 def connect(ID1,ID2):
+	base.login('trash')
 	while True:
+		print('triy')
 		base.login(ID1)
 		base.login(ID2)
-		connection1 = base.keep(ID1)['events'][-1]['from']
+		connection1 = getResponse(ID1)['events'][-1]['from']
 		if connection1 == ID2:
 			return True
-		connection2 = 'red'
-		print(base.keep(ID2))#['events'][-1]['from'])
 		base.disconnect(connection1)
-		base.disconnect(connection2)
+		response2 = base.keep(ID2)
+		if ('events' in response2):
+			base.disconnect(response2['events'][-1]['from'])
+
+def bind(ID,startid=0):
+	print('logginiging') 
+	base.login(ID+'_cat'+str(startid))
+	base.login(ID)
+	base.login(ID+'_cat'+str(startid+1))
+	print('done')
+	
+	connected = getResponse(ID)['events'][-1]['from']
+	if connected[:-5] == ID:
+		return connected
+	else:
+		base.disconnect(connected)
+		return bind(ID,startid+2)
 
 
 

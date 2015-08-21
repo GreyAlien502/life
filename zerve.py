@@ -19,7 +19,7 @@ def send(destination,content):
 			#   (response['events'][-1]['from'] == destination):
 			print('imperfiect')
 			commands.connect(destination+'_cat',destination)
-			base.chat(destination+'_cat',destination,message)
+			base.bind(destination+'_cat')
 	block_size = 2300
 	checkconnection=False
 	if len(content) < block_size:
