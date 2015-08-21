@@ -22,7 +22,8 @@ def connect(ID1,ID2):
 		connection1 = base.keep(ID1)['events'][-1]['from']
 		if connection1 == ID2:
 			return True
-		connection2 = base.keep(ID2)['events'][-1]['from']
+		connection2 = 'red'
+		print(base.keep(ID2))#['events'][-1]['from'])
 		base.disconnect(connection1)
 		base.disconnect(connection2)
 

@@ -38,7 +38,7 @@ cat = "zerving_cat"
 hat = "zerving_hat"
 commands.connect(cat,hat)
 while True:
-	base.chat(hat,cat,"Look at me NOW!")
+	base.chat(cat,hat,"Look at me NOW!")
 	response = base.keep(cat)
 	if 'events' in response:
 		print(response)
