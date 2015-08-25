@@ -35,8 +35,14 @@ def bind(ID,startid=0):
 	base.login(ID)
 	base.login(ID+'_cat'+str(startid+1))
 	print('done')
-	
-	connected = getResponse(ID)['events'][-1]['from']
+
+	connected = None
+	while connected == None:
+		for response in getResponse(ID)['events']:
+			if response['type'] == 'connected':
+				connected = response['from']
+				break
+
 	if connected[:-5] == ID:
 		return connected
 	else:
