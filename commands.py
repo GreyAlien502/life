@@ -1,6 +1,6 @@
 import subprocess as sub
 import time
-import basiccommands as base
+import life.basiccommands as base
 
 def getResponse(ID,timeout=False):
 	if timeout:
